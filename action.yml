@@ -1,0 +1,72 @@
+name: Astra DB Setup
+description: Setup a new database in Datastax Astra DB
+
+inputs:
+  token:
+    required: true
+    description: "Astra DB application token. It needs to have enough permissions to create/delete databases in the organization."
+  name:
+    required: true
+    description: "Name of the database to create."
+  region:
+    required: true
+    description: "Region whereas to create the database."
+  cloud:
+    required: true
+    description: "Cloud provider whereas to create the database. (aws,gcp,azure)"
+  env:
+    description: "Astra DB environment. (ENV, PROD)"
+    default: "PROD"
+
+outputs:
+  api-endpoint:
+    description: "Full URL API endpoint of the database"
+    value: ${{ steps.db-setup.outputs.db_endpoint }}
+  id:
+    description: "Database ID"
+    value: ${{ steps.db-setup.outputs.db_id }}
+runs:
+  using: "composite"
+  steps:
+    - name: Create a new database
+      shell: bash
+      id: db-setup
+      env:
+        TERM: linux
+      run: |
+        set -e
+        (curl -Ls "https://dtsx.io/get-astra-cli" | bash) || true
+        (/home/runner/.astra/cli/astra db create -v "${{ inputs.name }}" \
+          --env "${{ inputs.env }}" \
+          -k default_keyspace \
+          --token "${{ inputs.token }}" \
+          --vector \
+          --region "${{ inputs.region }}" \
+          --cloud "${{ inputs.cloud }}" \
+          --timeout 1200) || echo "Failed to create database, check if creation is still in progress"
+
+        while true; do
+          describe_out=$(/home/runner/.astra/cli/astra db describe "${{ inputs.name }}" \
+              --token "${{ inputs.token }}" --env "${{ inputs.env }}" -o json)
+          status=$(echo "$describe_out" | jq -r '.data.status')
+          database_id=$(echo "$describe_out" | jq -r '.data.id')
+          if [ "$status" == "ACTIVE" ]; then
+            break
+          fi
+          if [ "$status" == "INITIALIZING" ]; then
+            echo "Database is not active, status: $status"
+            sleep 10
+          fi
+          echo "Database creation failed, status: $status"
+          exit 1
+        done
+
+        echo "Database id: $database_id"
+        domain="astra"
+        if [ "${{ inputs.env }}" == "DEV" ]; then
+          domain="astra-dev"
+        fi
+        db_endpoint="https://${database_id}-${{ inputs.region }}.apps.${domain}.datastax.com"
+        echo "Database endpoint: $db_endpoint"
+        echo "api-endpoint=$db_endpoint" >> $GITHUB_OUTPUT
+        echo "id=$database_id" >> $GITHUB_OUTPUT
