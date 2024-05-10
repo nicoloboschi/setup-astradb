@@ -5,15 +5,19 @@ inputs:
   token:
     required: true
     description: "Astra DB application token. It needs to have enough permissions to create/delete databases in the organization."
-  name:
-    required: true
-    description: "Name of the database to create."
   region:
     required: true
     description: "Region whereas to create the database."
   cloud:
     required: true
     description: "Cloud provider whereas to create the database. (aws,gcp,azure)"
+  name:
+    required: false
+    description: "Name of the database to create."
+  name-prefix:
+    required: false
+    default: ""
+    description: "Prefix for the generated database name."
   env:
     description: "Astra DB environment. (ENV, PROD)"
     default: "PROD"
@@ -21,10 +25,13 @@ inputs:
 outputs:
   api-endpoint:
     description: "Full URL API endpoint of the database"
-    value: ${{ steps.db-setup.outputs.db_endpoint }}
+    value: ${{ steps.db-setup.outputs.api_endpoint }}
   id:
     description: "Database ID"
-    value: ${{ steps.db-setup.outputs.db_id }}
+    value: ${{ steps.db-setup.outputs.id }}
+  name:
+    description: "Database name"
+    value: ${{ steps.db-setup.outputs.name }}
 runs:
   using: "composite"
   steps:
@@ -36,7 +43,19 @@ runs:
       run: |
         set -e
         (curl -Ls "https://dtsx.io/get-astra-cli" | bash) || true
-        (/home/runner/.astra/cli/astra db create -v "${{ inputs.name }}" \
+        
+        if [ -z "${{ inputs.name }}" ]; then
+          prefix=""
+          if [ -n "${{ inputs.name-prefix }}" ]; then
+            prefix="${{ inputs.name-prefix }}_"
+          fi
+          db_name="$prefix_${{ github.run_id }}_$(echo $(for((i=1;i<=4;i++))
+          do printf '%s' "${RANDOM:0:1}"; done) | tr '[0-9]' '[a-z]')"
+        else
+          db_name="${{ inputs.name }}"
+        fi
+        
+        (/home/runner/.astra/cli/astra db create -v "$db_name" \
           --env "${{ inputs.env }}" \
           -k default_keyspace \
           --token "${{ inputs.token }}" \
@@ -46,7 +65,7 @@ runs:
           --timeout 1200) || echo "Failed to create database, check if creation is still in progress"
 
         while true; do
-          describe_out=$(/home/runner/.astra/cli/astra db describe "${{ inputs.name }}" \
+          describe_out=$(/home/runner/.astra/cli/astra db describe "$db_name" \
               --token "${{ inputs.token }}" --env "${{ inputs.env }}" -o json)
           status=$(echo "$describe_out" | jq -r '.data.status')
           database_id=$(echo "$describe_out" | jq -r '.data.id')
@@ -70,6 +89,7 @@ runs:
         echo "Database endpoint: $db_endpoint"
         echo "api-endpoint=$db_endpoint" >> $GITHUB_OUTPUT
         echo "id=$database_id" >> $GITHUB_OUTPUT
+        echo "name=$db_name" >> $GITHUB_OUTPUT
 
 
 branding:
