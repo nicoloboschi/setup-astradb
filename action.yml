@@ -70,3 +70,8 @@ runs:
         echo "Database endpoint: $db_endpoint"
         echo "api-endpoint=$db_endpoint" >> $GITHUB_OUTPUT
         echo "id=$database_id" >> $GITHUB_OUTPUT
+
+
+branding:
+  icon: 'database'
+  color: 'orange'
