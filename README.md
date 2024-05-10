@@ -38,5 +38,4 @@ jobs:
         name: my-database
         region: us-east-2
         cloud: aws
-        bodyFile: "body.md"
 ```
