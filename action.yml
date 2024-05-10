@@ -11,6 +11,12 @@ inputs:
   cloud:
     required: true
     description: "Cloud provider whereas to create the database. (aws,gcp,azure)"
+  vector:
+    required: false
+    description: "Whether to create a Vector database. (true, false)"
+  keyspace:
+    default: "default_keyspace"
+    description: "Database default keyspace. Defaults to 'default_keyspace'."
   name:
     required: false
     description: "Name of the database to create."
@@ -55,11 +61,15 @@ runs:
           db_name="${{ inputs.name }}"
         fi
         
-        (/home/runner/.astra/cli/astra db create -v "$db_name" \
+        vector_param=""
+        if [ "${{ inputs.vector }}" == "true" ]; then
+          vector_param="--vector"
+        fi
+        
+        (/home/runner/.astra/cli/astra db create -v "$db_name" $vector_param \
           --env "${{ inputs.env }}" \
-          -k default_keyspace \
+          -k "${{ inputs.keyspace }}" \
           --token "${{ inputs.token }}" \
-          --vector \
           --region "${{ inputs.region }}" \
           --cloud "${{ inputs.cloud }}" \
           --timeout 1200) || echo "Failed to create database, check if creation is still in progress"

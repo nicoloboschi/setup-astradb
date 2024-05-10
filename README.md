@@ -4,14 +4,16 @@ This action creates a [DataStax AstraDB](https://www.datastax.com/products/datas
 To clean up the database, use the `@nicoloboschi/cleanup-astradb` [action](https://github.com/nicoloboschi/cleanup-astradb).
 
 ## Action Inputs
-| Input name  | Description                                                                               	                     | Required 	 | Default Value |
-|-------------|-----------------------------------------------------------------------------------------------------------------|------------|---------------|
-| token       | Astra DB application token. It needs to have enough permissions to create/delete databases in the organization. | true       |               |
-| name        | Name of the database to create. If not provided, a name will be generated automatically.                        | false      |               |
-| name-prefix | Name prefix in case `name` is not set.                                                                          | false      |               |
-| region      | Region whereas to create the database. (aws,gcp,azure)                                                          | true       |               |
-| cloud       | Cloud provider whereas to create the database.                                                                  | true       |               |
-| env         | Astra DB environment. (ENV, PROD).                                                                              | false      | PROD          |
+| Input name  | Description                                                                               	                     | Required 	 | Default Value    |
+|-------------|-----------------------------------------------------------------------------------------------------------------|------------|------------------|
+| token       | Astra DB application token. It needs to have enough permissions to create/delete databases in the organization. | true       |                  |
+| region      | Region whereas to create the database. (aws,gcp,azure)                                                          | true       |                  |
+| cloud       | Cloud provider whereas to create the database.                                                                  | true       |                  |
+| env         | Astra DB environment. (ENV, PROD).                                                                              | false      | PROD             |
+| name        | Name of the database to create. If not provided, a name will be generated automatically.                        | false      |                  |
+| name-prefix | Name prefix in case `name` is not set.                                                                          | false      |                  |
+| vector      | Whether to create a Vector database. (true, false)                                                              | false      | true             |
+| keyspace    | "Database default keyspace. Defaults to 'default_keyspace'."                                                    | false      | default_keyspace |
 
 
 ## Action Outputs
