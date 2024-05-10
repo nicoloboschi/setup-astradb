@@ -14,6 +14,7 @@ inputs:
   vector:
     required: false
     description: "Whether to create a Vector database. (true, false)"
+    default: "true"
   keyspace:
     default: "default_keyspace"
     description: "Database default keyspace. Defaults to 'default_keyspace'."
