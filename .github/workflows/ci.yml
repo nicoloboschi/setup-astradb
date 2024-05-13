@@ -1,0 +1,25 @@
+name: Release
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: .
+      timeout-minutes: 10
+      id: astra
+      with:
+        token: ${{ secrets.TESTS_ASTRA_TOKEN }}
+        region: us-east-2
+        cloud: aws
+    - uses: nicoloboschi/cleanup-astradb@v1
+      if: ${{ always() && steps.astra.outputs.name != '' }}
+      with:
+        token: ${{ secrets.TESTS_ASTRA_TOKEN }}
+        name: ${{ steps.astra.outputs.name }}
+        wait: false
