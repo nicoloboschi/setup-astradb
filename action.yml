@@ -50,6 +50,8 @@ runs:
       run: |
         set -e
         (curl -Ls "https://dtsx.io/get-astra-cli" | bash) || true
+        echo "Astra CLI installed"
+        /home/runner/.astra/cli/astra -v
         
         if [ -z "${{ inputs.name }}" ]; then
           prefix=""
@@ -57,10 +59,11 @@ runs:
             prefix="${{ inputs.name-prefix }}_"
           fi
           random_suffix=$(cat /dev/urandom | env LC_ALL=C tr -dc 'a-z0-9' | fold -w 4 | head -n 1)
-          db_name="${prefix}_${{ github.run_id }}_${random_suffix}"
+          db_name="${prefix}${{ github.run_id }}_${random_suffix}"
           echo "Using generated database name: $db_name"
         else
           db_name="${{ inputs.name }}"
+          echo "Using provided database name: $db_name"
         fi
         
         vector_param=""
