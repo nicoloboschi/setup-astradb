@@ -56,9 +56,12 @@ runs:
         if [ -z "${{ inputs.name }}" ]; then
           prefix=""
           if [ -n "${{ inputs.name-prefix }}" ]; then
+            echo "Generating database name with prefix: $prefix"
             prefix="${{ inputs.name-prefix }}_"
+          else
+            echo "Generating database name without prefix"
           fi
-          random_suffix=$(cat /dev/urandom | env LC_ALL=C tr -dc 'a-z0-9' | fold -w 4 | head -n 1)
+          random_suffix=$RANDOM
           db_name="${prefix}${{ github.run_id }}_${random_suffix}"
           echo "Using generated database name: $db_name"
         else
