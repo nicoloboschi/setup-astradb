@@ -32,7 +32,7 @@ inputs:
 outputs:
   api-endpoint:
     description: "Full URL API endpoint of the database"
-    value: ${{ steps.db-setup.outputs.api_endpoint }}
+    value: ${{ steps.db-setup.outputs.api-endpoint }}
   id:
     description: "Database ID"
     value: ${{ steps.db-setup.outputs.id }}
