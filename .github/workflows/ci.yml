@@ -17,6 +17,23 @@ jobs:
         token: ${{ secrets.TESTS_ASTRA_TOKEN }}
         region: us-east-2
         cloud: aws
+
+    - run: |
+        id="${{ steps.astra.outputs.id }}" 
+        name="${{ steps.astra.outputs.name }}"
+        endpoint="${{ steps.astra.outputs.api-endpoint }}"
+        if [ -z "$id" ]; then
+          echo "output id not found"
+          exit 1
+        fi
+        if [ -z "$name" ]; then
+          echo "output name not found"
+          exit 1
+        fi
+        if [ -z "$endpoint" ]; then
+          echo "output endpoint not found"
+          exit 1
+        fi
     - uses: nicoloboschi/cleanup-astradb@v1
       if: ${{ always() && steps.astra.outputs.name != '' }}
       with:
